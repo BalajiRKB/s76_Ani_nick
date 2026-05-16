@@ -1,0 +1,8 @@
+# Do NOT exclude .git — Silver needs full git history for git reset --hard during task execution
+node_modules
+client/node_modules
+server/node_modules
+*.log
+.env
+.env.*
+!.env.example
