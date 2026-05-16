@@ -5,7 +5,7 @@ services:
     image: mongo:7
     restart: unless-stopped
     environment:
-      MONGO_INITDB_DATABASE: aninick
+      MONGO_INITDB_DATABASE: ASAP_DB
     volumes:
       - mongo_data:/data/db
     healthcheck:
@@ -23,7 +23,8 @@ services:
       - "5000:5000"
     environment:
       PORT: 5000
-      MONGO_URI: mongodb://mongo:27017/aninick
+      # Matches the dbName hardcoded in database.js (ASAP_DB)
+      MONGO_URI: mongodb://mongo:27017/ASAP_DB
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
       FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
       FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}

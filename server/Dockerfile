@@ -2,9 +2,10 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Copy only package files first (better layer caching)
-COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+# Copy only package file first (better layer caching)
+COPY package.json ./
+# Use npm install (not npm ci) because server has no package-lock.json committed
+RUN npm install --omit=dev
 
 # ── Stage 2: production image ─────────────────────────────────────────────────
 FROM node:20-alpine

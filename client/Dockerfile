@@ -2,12 +2,13 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+# client has package-lock.json so npm ci is safe here
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm install
 
 COPY . .
 
-# Build args for env vars at build time
+# Build args for env vars baked in at build time (Vite requirement)
 ARG VITE_API_URL
 ARG VITE_FIREBASE_API_KEY
 ARG VITE_FIREBASE_AUTH_DOMAIN
@@ -29,23 +30,23 @@ RUN npm run build
 # ── Stage 2: serve with nginx ─────────────────────────────────────────────────
 FROM nginx:alpine
 
-# Copy built files
+# Copy built dist to nginx html root
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# nginx config for SPA (React Router)
-RUN echo 'server { \
-  listen 80; \
-  root /usr/share/nginx/html; \
-  index index.html; \
-  location / { \
-    try_files $uri $uri/ /index.html; \
-  } \
-  location /api { \
-    proxy_pass http://server:5000; \
-    proxy_set_header Host $host; \
-    proxy_set_header X-Real-IP $remote_addr; \
-  } \
-}' > /etc/nginx/conf.d/default.conf
+# nginx config for SPA (React Router) + API proxy to server container
+RUN printf 'server {\n\
+  listen 80;\n\
+  root /usr/share/nginx/html;\n\
+  index index.html;\n\
+  location / {\n\
+    try_files $uri $uri/ /index.html;\n\
+  }\n\
+  location /api {\n\
+    proxy_pass http://server:5000;\n\
+    proxy_set_header Host $host;\n\
+    proxy_set_header X-Real-IP $remote_addr;\n\
+  }\n\
+}\n' > /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
